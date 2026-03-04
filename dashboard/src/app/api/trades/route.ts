@@ -15,7 +15,11 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ trades });
-  } catch (error) {
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "";
+    if (msg === "DB_UNAVAILABLE") {
+      return NextResponse.json({ trades: [] });
+    }
     console.error("Trades GET error:", error);
     return NextResponse.json({ error: "Failed to fetch trades" }, { status: 500 });
   }

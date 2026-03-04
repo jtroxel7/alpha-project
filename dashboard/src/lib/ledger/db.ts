@@ -13,8 +13,13 @@ function getDb(): Database.Database {
 
   // Ensure data directory exists
   const dir = path.dirname(DB_PATH);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  try {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  } catch {
+    // On serverless (Vercel), filesystem may be read-only
+    throw new Error("DB_UNAVAILABLE");
   }
 
   _db = new Database(DB_PATH);
