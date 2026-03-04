@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.kalshi.com)",
+      "WebFetch(domain:docs.polymarket.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:www.predictionmarketnews.co)",
+      "WebFetch(domain:www.lazertechnologies.com)",
+      "WebFetch(domain:worldbusinessoutlook.com)",
+      "WebFetch(domain:neptune.ai)",
+      "WebFetch(domain:rondesignlab.com)",
+      "Bash(npx create-next-app@latest dashboard --typescript --tailwind --eslint --app --src-dir --no-import-alias --use-npm)",
+      "Bash(npm install better-sqlite3 recharts date-fns)",
+      "Bash(npm install -D @types/better-sqlite3)",
+      "Bash(npm run build)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s \"https://gamma-api.polymarket.com/events?active=true&closed=false&limit=2&order=volume24hr&ascending=false\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s \"https://gamma-api.polymarket.com/events?active=true&closed=false&limit=5&order=volume24hr&ascending=false\")",
+      "Bash(python3 -c \"import json,sys; events=json.load\\(sys.stdin\\); [print\\(e.get\\(''title'',''?''\\), ''|'', e.get\\(''category'',''NO_CAT''\\), ''|'', len\\(e.get\\(''markets'',[]\\)\\), ''markets''\\) for e in events]\")",
+      "Bash(python3 -c \"import json,sys; e=json.load\\(sys.stdin\\)[0]; print\\(sorted\\(e.keys\\(\\)\\)\\)\")",
+      "Bash(curl -s \"https://gamma-api.polymarket.com/events?active=true&closed=false&limit=10&order=volume24hr&ascending=false\")",
+      "Bash(python3 -c \"import json,sys; events=json.load\\(sys.stdin\\); [print\\(e.get\\(''title'',''?''\\)[:50], ''|'', e.get\\(''tags'',''NONE''\\), ''|'', e.get\\(''slug'',''''\\)[:30]\\) for e in events]\")",
+      "Bash(git init)",
+      "Bash(git add -A)"
+    ]
+  }
+}
