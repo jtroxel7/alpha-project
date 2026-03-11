@@ -33,7 +33,7 @@ then transition to real money trading.
 ### Project Structure
 ```
 alpha-project/
-├── CLAUDE.md              # This file — project context (auto-loaded)
+├── AGENTS.md              # This file — project context (auto-loaded)
 ├── BUILD_STATUS.md        # Living build tracker with current status
 ├── src/
 │   ├── api/               # API clients for Polymarket and Kalshi
@@ -78,7 +78,7 @@ See `src/ledger/schema.sql` for full schema.
 
 ## How the AI Trading Loop Works
 1. Scanner pulls active markets from Polymarket/Kalshi APIs
-2. AI (Claude) analyzes each candidate: reads contract, searches for data, estimates probability
+2. AI (Codex) analyzes each candidate: reads contract, searches for data, estimates probability
 3. Edge calculator compares AI estimate to market price
 4. If edge >= threshold, Kelly sizer determines position size
 5. Trade is recorded in SQLite ledger with reasoning

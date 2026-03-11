@@ -2,7 +2,7 @@
 
 export interface Market {
   id: string;
-  source: "polymarket" | "kalshi";
+  source: "polymarket" | "kalshi" | "crypto_sim";
   question: string;
   category: string;
   outcomes: string[];
@@ -24,7 +24,7 @@ export interface Market {
 export interface ProbabilityEstimate {
   id?: number;
   marketId: string;
-  source: "polymarket" | "kalshi";
+  source: "polymarket" | "kalshi" | "crypto_sim";
   question?: string;
   estimatedProbability: number; // 0 to 1 — our estimate of YES outcome
   marketPrice: number; // 0 to 1 — current market price for YES
@@ -48,7 +48,7 @@ export interface TradeSignal {
 export interface Trade {
   id?: number;
   marketId: string;
-  source: "polymarket" | "kalshi";
+  source: "polymarket" | "kalshi" | "crypto_sim";
   question: string;
   side: "YES" | "NO";
   entryPrice: number;
@@ -109,9 +109,9 @@ export interface ScannerFilters {
 // Config
 export const DEFAULT_CONFIG = {
   bankroll: 500,
-  maxPositionPct: 0.05, // 5% of bankroll
-  maxExposurePct: 0.40, // 40% of bankroll
-  minEdge: 0.05, // 5 percentage points
-  kellyFraction: 0.25, // quarter Kelly
+  maxPositionPct: 0.10, // 10% of bankroll ($50 max per trade)
+  maxExposurePct: 0.70, // 70% of bankroll ($350 max deployed)
+  minEdge: 0.03, // 3 percentage points
+  kellyFraction: 0.50, // half Kelly
   reassessmentThreshold: 0.15, // 15 point move against
 } as const;

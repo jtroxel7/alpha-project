@@ -44,7 +44,7 @@ function getSchemaSQL(): string {
     CREATE TABLE IF NOT EXISTS trades (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       market_id TEXT NOT NULL,
-      source TEXT NOT NULL CHECK(source IN ('polymarket', 'kalshi')),
+      source TEXT NOT NULL CHECK(source IN ('polymarket', 'kalshi', 'crypto_sim')),
       question TEXT NOT NULL,
       side TEXT NOT NULL CHECK(side IN ('YES', 'NO')),
       entry_price REAL NOT NULL,
@@ -64,7 +64,7 @@ function getSchemaSQL(): string {
     CREATE TABLE IF NOT EXISTS probability_estimates (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       market_id TEXT NOT NULL,
-      source TEXT NOT NULL CHECK(source IN ('polymarket', 'kalshi')),
+      source TEXT NOT NULL CHECK(source IN ('polymarket', 'kalshi', 'crypto_sim')),
       question TEXT NOT NULL,
       estimated_probability REAL NOT NULL,
       market_price REAL NOT NULL,
@@ -180,7 +180,7 @@ function mapTradeRow(row: Record<string, unknown>): Trade {
   return {
     id: row.id as number,
     marketId: row.market_id as string,
-    source: row.source as "polymarket" | "kalshi",
+    source: row.source as "polymarket" | "kalshi" | "crypto_sim",
     question: row.question as string,
     side: row.side as "YES" | "NO",
     entryPrice: row.entry_price as number,
@@ -223,7 +223,7 @@ export function getRecentEstimates(limit: number = 50): ProbabilityEstimate[] {
   return rows.map(row => ({
     id: row.id as number,
     marketId: row.market_id as string,
-    source: row.source as "polymarket" | "kalshi",
+    source: row.source as "polymarket" | "kalshi" | "crypto_sim",
     estimatedProbability: row.estimated_probability as number,
     marketPrice: row.market_price as number,
     edge: row.edge as number,
@@ -244,8 +244,14 @@ export function getPortfolioSnapshot(): PortfolioSnapshot {
 
   const investedAmount = openTrades.reduce((sum, t) => sum + t.positionSize, 0);
   const realizedPnl = closedTrades.reduce((sum, t) => sum + (t.realizedPnl || 0), 0);
-  const wins = closedTrades.filter(t => t.status === "closed_win").length;
-  const losses = closedTrades.filter(t => t.status === "closed_loss").length;
+
+  // Count wins/losses: resolved trades by outcome, exits by P&L
+  const wins = closedTrades.filter(t =>
+    t.status === "closed_win" || (t.status === "closed_exit" && (t.realizedPnl || 0) > 0)
+  ).length;
+  const losses = closedTrades.filter(t =>
+    t.status === "closed_loss" || (t.status === "closed_exit" && (t.realizedPnl || 0) <= 0)
+  ).length;
 
   // Cash = starting bankroll + realized P&L - currently invested
   const cashBalance = DEFAULT_CONFIG.bankroll + realizedPnl - investedAmount;
@@ -263,7 +269,7 @@ export function getPortfolioSnapshot(): PortfolioSnapshot {
     totalTrades: allTrades.length,
     wins,
     losses,
-    winRate: closedTrades.length > 0 ? wins / closedTrades.length : 0,
+    winRate: (wins + losses) > 0 ? wins / (wins + losses) : 0,
     brierScore: calculateBrierScore(closedTrades),
   };
 }
@@ -324,6 +330,35 @@ export function savePortfolioSnapshot(): void {
     snapshot.unrealizedPnl, snapshot.realizedPnl, snapshot.openPositions,
     snapshot.totalTrades, snapshot.wins, snapshot.losses, snapshot.brierScore
   );
+}
+
+export function getCryptoStats(): {
+  totalTrades: number;
+  openTrades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  realizedPnl: number;
+  invested: number;
+} {
+  const db = getDb();
+  const all = db.prepare("SELECT * FROM trades WHERE source = 'crypto_sim'").all() as Record<string, unknown>[];
+  const open = all.filter(t => (t.status as string) === "open");
+  const closed = all.filter(t => (t.status as string) !== "open");
+  const wins = closed.filter(t => (t.status as string) === "closed_win").length;
+  const losses = closed.filter(t => (t.status as string) === "closed_loss").length;
+  const realizedPnl = closed.reduce((sum, t) => sum + ((t.realized_pnl as number) || 0), 0);
+  const invested = open.reduce((sum, t) => sum + ((t.position_size as number) || 0), 0);
+
+  return {
+    totalTrades: all.length,
+    openTrades: open.length,
+    wins,
+    losses,
+    winRate: (wins + losses) > 0 ? wins / (wins + losses) : 0,
+    realizedPnl,
+    invested,
+  };
 }
 
 export function getPortfolioHistory(): { createdAt: string; totalValue: number; realizedPnl: number }[] {

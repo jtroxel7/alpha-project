@@ -26,9 +26,38 @@ function StatCard({ label, value, subValue }: { label: string; value: string; su
   );
 }
 
+interface CryptoStats {
+  totalTrades: number;
+  openTrades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  realizedPnl: number;
+  invested: number;
+}
+
+function SourceBadge({ source }: { source: string }) {
+  if (source === "crypto_sim") {
+    return (
+      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-yellow-500/20 text-yellow-400 ml-2">
+        5MIN CRYPTO
+      </span>
+    );
+  }
+  if (source === "kalshi") {
+    return (
+      <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-400 ml-2">
+        KALSHI
+      </span>
+    );
+  }
+  return null;
+}
+
 export default function PortfolioPage() {
   const [snapshot, setSnapshot] = useState<PortfolioSnapshot | null>(null);
   const [openTrades, setOpenTrades] = useState<Trade[]>([]);
+  const [cryptoStats, setCryptoStats] = useState<CryptoStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,6 +66,7 @@ export default function PortfolioPage() {
       .then((data) => {
         setSnapshot(data.snapshot);
         setOpenTrades(data.openTrades || []);
+        setCryptoStats(data.cryptoStats || null);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -96,6 +126,48 @@ export default function PortfolioPage() {
         />
       </div>
 
+      {/* Crypto Trading Stats */}
+      {cryptoStats && cryptoStats.totalTrades > 0 && (
+        <div className="bg-card border border-card-border rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="px-2 py-0.5 rounded text-xs font-bold bg-yellow-500/20 text-yellow-400">5MIN CRYPTO</span>
+            <span className="text-xs text-muted uppercase tracking-wider">Simulated Binary Markets</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+            <div>
+              <div className="text-muted text-xs">Trades</div>
+              <div className="font-mono font-bold">{cryptoStats.totalTrades}</div>
+            </div>
+            <div>
+              <div className="text-muted text-xs">Open</div>
+              <div className="font-mono font-bold">{cryptoStats.openTrades}</div>
+            </div>
+            <div>
+              <div className="text-muted text-xs">Record</div>
+              <div className="font-mono font-bold">
+                <span className="text-accent-green">{cryptoStats.wins}W</span>
+                {" / "}
+                <span className="text-accent-red">{cryptoStats.losses}L</span>
+              </div>
+            </div>
+            <div>
+              <div className="text-muted text-xs">Win Rate</div>
+              <div className="font-mono font-bold">
+                {(cryptoStats.wins + cryptoStats.losses) > 0
+                  ? `${(cryptoStats.winRate * 100).toFixed(0)}%`
+                  : "\u2014"}
+              </div>
+            </div>
+            <div>
+              <div className="text-muted text-xs">P&L</div>
+              <div className={`font-mono font-bold ${cryptoStats.realizedPnl >= 0 ? "text-accent-green" : "text-accent-red"}`}>
+                {formatDollar(cryptoStats.realizedPnl)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Open Positions Table */}
       <div className="bg-card border border-card-border rounded-lg overflow-hidden">
         <div className="px-4 py-3 border-b border-card-border">
@@ -122,7 +194,10 @@ export default function PortfolioPage() {
               <tbody>
                 {openTrades.map((t) => (
                   <tr key={t.id} className="border-t border-card-border hover:bg-background/50">
-                    <td className="px-4 py-3 max-w-xs truncate">{t.question}</td>
+                    <td className="px-4 py-3 max-w-xs truncate">
+                      {t.question}
+                      <SourceBadge source={t.source} />
+                    </td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-0.5 rounded text-xs font-bold ${
                         t.side === "YES" ? "bg-accent-green/20 text-accent-green" : "bg-accent-red/20 text-accent-red"

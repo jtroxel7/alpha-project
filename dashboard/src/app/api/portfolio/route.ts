@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
-import { getPortfolioSnapshot, getOpenTrades, getPortfolioHistory } from "@/lib/ledger/db";
+import { getPortfolioSnapshot, getOpenTrades, getPortfolioHistory, getCryptoStats } from "@/lib/ledger/db";
 
 export async function GET() {
   try {
     const snapshot = getPortfolioSnapshot();
     const openTrades = getOpenTrades();
     const history = getPortfolioHistory();
+    const cryptoStats = getCryptoStats();
 
-    return NextResponse.json({ snapshot, openTrades, history });
+    return NextResponse.json({ snapshot, openTrades, history, cryptoStats });
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : "";
     if (msg === "DB_UNAVAILABLE") {
